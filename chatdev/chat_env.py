@@ -128,27 +128,28 @@ class ChatEnv:
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE
                                            )
-            time.sleep(3)
+            try:
+                stdout, stderr = process.communicate(timeout=3)
+            except subprocess.TimeoutExpired:
+                if process.poll() is None:
+                    if hasattr(os, "killpg"):
+                        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                    else:
+                        os.kill(process.pid, signal.SIGTERM)
+                        if process.poll() is None:
+                            os.kill(process.pid, signal.CTRL_BREAK_EVENT)
+                stdout, stderr = process.communicate()
             return_code = process.returncode
-            # Check if the software is still running
-            if process.poll() is None:
-                if "killpg" in dir(os):
-                    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-                else:
-                    os.kill(process.pid, signal.SIGTERM)
-                    if process.poll() is None:
-                        os.kill(process.pid, signal.CTRL_BREAK_EVENT)
 
             if return_code == 0:
                 return False, success_info
             else:
-                error_output = process.stderr.read().decode('utf-8')
+                error_output = stderr.decode('utf-8') if stderr else ''
                 if error_output:
                     if "Traceback".lower() in error_output.lower():
                         errs = error_output.replace(directory + "/", "")
                         return True, errs
-                else:
-                    return False, success_info
+                return False, success_info
         except subprocess.CalledProcessError as e:
             return True, f"Error: {e}"
         except Exception as ex:

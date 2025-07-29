@@ -132,6 +132,8 @@ class Codes:
         for root, directories, filenames in os.walk(directory):
             for filename in filenames:
                 if filename.endswith(".py"):
-                    code = open(os.path.join(directory, filename), "r", encoding="utf-8").read()
+                    file_path = os.path.join(root, filename)
+                    with open(file_path, "r", encoding="utf-8") as f:
+                        code = f.read()
                     self.codebooks[filename] = self._format_code(code)
         log_visualize("{} files read from {}".format(len(self.codebooks.keys()), directory))
