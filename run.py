@@ -32,7 +32,7 @@ except ImportError:
     openai_new_api = False  # old openai api version
     print(
         "Warning: Your OpenAI version is outdated. \n "
-        "Please update as specified in requirement.txt. \n "
+        "Please update as specified in requirements.txt. \n "
         "The old API interface is deprecated and will no longer be supported.")
 
 
